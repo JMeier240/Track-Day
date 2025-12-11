@@ -1,0 +1,16 @@
+node_modules/
+npm-debug.log*
+yarn-*.log*
+.env
+.env.*
+!.env.example
+.DS_Store
+Thumbs.db
+__pycache__/
+dist/
+build/
+coverage/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
