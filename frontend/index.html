@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -12,96 +12,224 @@
     <div id="app">
       <!-- Header -->
       <header class="header">
-        <h1>🏁 TrackDay Racing</h1>
-        <div id="user-info" class="user-info"></div>
+        <div class="header-content">
+          <div class="logo">
+            <span class="logo-icon">🏁</span>
+            <span class="logo-text">TrackDay <span class="logo-separator">•</span> Racing</span>
+          </div>
+          <button id="theme-toggle" class="theme-toggle" aria-label="Toggle dark mode">
+            Dark Mode
+          </button>
+        </div>
       </header>
 
-      <!-- Main Navigation -->
-      <nav class="nav">
-        <button class="nav-btn active" data-view="home">Home</button>
-        <button class="nav-btn" data-view="tracks">Tracks</button>
-        <button class="nav-btn" data-view="challenges">Challenges</button>
-        <button class="nav-btn" data-view="profile">Profile</button>
-      </nav>
-
-      <!-- Views Container -->
-      <main class="container">
-        <!-- Home View -->
-        <div id="home-view" class="view active">
-          <section class="welcome">
-            <h2>Welcome to TrackDay Racing!</h2>
-            <p>Create tracks, challenge friends, and compete for the best times.</p>
-          </section>
-
-          <section class="user-setup" id="user-setup">
-            <h3>Get Started</h3>
-            <input type="text" id="username" placeholder="Username" />
-            <input type="text" id="display-name" placeholder="Display Name" />
-            <button id="create-user-btn" class="btn-primary">Create Profile</button>
-          </section>
-
-          <section class="quick-actions" id="quick-actions" style="display: none">
-            <h3>Quick Actions</h3>
-            <button class="btn-primary" id="create-track-btn">🗺️ Create New Track</button>
-            <button class="btn-secondary" id="browse-challenges-btn">🏆 Browse Challenges</button>
-          </section>
-
-          <section class="active-challenges">
-            <h3>Active Challenges</h3>
-            <div id="active-challenges-list" class="challenges-list"></div>
-          </section>
-        </div>
-
-        <!-- Tracks View -->
-        <div id="tracks-view" class="view">
-          <h2>Tracks</h2>
-          <button class="btn-primary" id="new-track-btn">+ Create Track</button>
-          <div id="tracks-list" class="tracks-list"></div>
-        </div>
-
-        <!-- Track Creator -->
-        <div id="track-creator" class="modal" style="display: none">
-          <div class="modal-content">
-            <h2>Create Track</h2>
-            <input type="text" id="track-name" placeholder="Track Name" />
-            <textarea id="track-description" placeholder="Description"></textarea>
-            <select id="activity-type">
-              <option value="running">Running</option>
-              <option value="biking">Biking</option>
-              <option value="skating">Skating</option>
-              <option value="driving">Driving</option>
-              <option value="go-kart">Go-Kart</option>
-            </select>
-            <div class="gps-controls">
-              <button id="start-recording-btn" class="btn-primary">Start Recording</button>
-              <button id="stop-recording-btn" class="btn-secondary" disabled>Stop Recording</button>
-              <p id="recording-status"></p>
+      <!-- Main Content -->
+      <main class="main-content">
+        <!-- Welcome Section -->
+        <section class="welcome-section">
+          <div class="welcome-header">
+            <div>
+              <h1 class="welcome-title">Welcome back, <span id="user-display-name">Driver</span></h1>
+              <p class="welcome-subtitle">Real-time lap data, leaderboards, and share-ready highlights.</p>
             </div>
-            <div class="waypoints-preview">
-              <h4>Waypoints: <span id="waypoint-count">0</span></h4>
-              <p>Distance: <span id="track-distance">0</span> meters</p>
+            <button id="share-race-card-btn" class="btn-primary">Share Race Card</button>
+          </div>
+
+          <!-- Stats Grid -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-label">Personal Best</div>
+              <div class="stat-value" id="personal-best">--:--:---</div>
             </div>
-            <button id="save-track-btn" class="btn-primary" disabled>Save Track</button>
-            <button id="cancel-track-btn" class="btn-secondary">Cancel</button>
+            <div class="stat-card">
+              <div class="stat-label">Avg Speed</div>
+              <div class="stat-value" id="avg-speed">-- mph</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Total Laps</div>
+              <div class="stat-value" id="total-laps">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">This Week Races</div>
+              <div class="stat-value" id="week-races">0</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Content Grid -->
+        <div class="content-grid">
+          <!-- Left Column -->
+          <div class="left-column">
+            <!-- Leaderboard -->
+            <section class="card">
+              <h2 class="card-title">Leaderboard</h2>
+              <div class="leaderboard" id="leaderboard">
+                <div class="empty-state">
+                  <p>No leaderboard data yet. Create a track and start racing!</p>
+                </div>
+              </div>
+            </section>
+
+            <!-- Recent Races -->
+            <section class="card">
+              <h2 class="card-title">Recent Races</h2>
+              <div class="recent-races" id="recent-races">
+                <div class="empty-state">
+                  <p>No recent races. Start your first race!</p>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <!-- Right Column -->
+          <div class="right-column">
+            <!-- Live Telemetry -->
+            <section class="card">
+              <h2 class="card-title">Live Telemetry</h2>
+              <div class="telemetry-placeholder">
+                <p class="telemetry-label">Speed (mph)</p>
+                <div class="telemetry-value" id="live-speed">--</div>
+                <p class="telemetry-note">Demo data - integrate hardware stream later</p>
+              </div>
+            </section>
+
+            <!-- Quick Actions -->
+            <section class="card">
+              <h2 class="card-title">Quick Actions</h2>
+              <div class="test-cases">
+                <button class="action-btn" id="create-profile-btn">
+                  <span class="action-number">1</span>
+                  <span class="action-text">Create Profile</span>
+                </button>
+                <button class="action-btn" id="create-track-btn">
+                  <span class="action-number">2</span>
+                  <span class="action-text">Record New Track</span>
+                </button>
+                <button class="action-btn" id="start-race-btn">
+                  <span class="action-number">3</span>
+                  <span class="action-text">Start Racing</span>
+                </button>
+              </div>
+            </section>
           </div>
         </div>
-
-        <!-- Challenges View -->
-        <div id="challenges-view" class="view">
-          <h2>Challenges</h2>
-          <div id="challenges-list" class="challenges-list"></div>
-        </div>
-
-        <!-- Profile View -->
-        <div id="profile-view" class="view">
-          <h2>My Profile</h2>
-          <div id="profile-content"></div>
-          <h3>My Tracks</h3>
-          <div id="my-tracks-list"></div>
-          <h3>My Attempts</h3>
-          <div id="my-attempts-list"></div>
-        </div>
       </main>
+
+      <!-- Footer -->
+      <footer class="footer">
+        <p>Prototype UI • Replace demo data with live telemetry stream. © TrackDay 2025</p>
+      </footer>
+    </div>
+
+    <!-- Modals -->
+
+    <!-- Profile Creation Modal -->
+    <div id="profile-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Create Your Profile</h2>
+          <button class="modal-close" data-modal="profile-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter username" />
+          </div>
+          <div class="form-group">
+            <label for="display-name">Display Name</label>
+            <input type="text" id="display-name" placeholder="Enter display name" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" data-modal="profile-modal">Cancel</button>
+          <button class="btn-primary" id="save-profile-btn">Create Profile</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Track Creator Modal -->
+    <div id="track-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content modal-large">
+        <div class="modal-header">
+          <h2>Create New Track</h2>
+          <button class="modal-close" data-modal="track-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="track-name">Track Name</label>
+            <input type="text" id="track-name" placeholder="e.g., Cedar Speedway GP" />
+          </div>
+          <div class="form-group">
+            <label for="track-description">Description</label>
+            <textarea id="track-description" placeholder="Describe your track..."></textarea>
+          </div>
+          <div class="form-group">
+            <label for="activity-type">Activity Type</label>
+            <select id="activity-type">
+              <option value="driving">Driving / Racing</option>
+              <option value="go-kart">Go-Kart</option>
+              <option value="biking">Biking</option>
+              <option value="running">Running</option>
+              <option value="skating">Skating</option>
+            </select>
+          </div>
+          <div class="gps-recorder">
+            <div class="recorder-header">
+              <h3>GPS Recording</h3>
+              <div class="recorder-status" id="recorder-status">Ready to record</div>
+            </div>
+            <div class="recorder-stats">
+              <div class="recorder-stat">
+                <span class="recorder-stat-label">Waypoints</span>
+                <span class="recorder-stat-value" id="waypoint-count">0</span>
+              </div>
+              <div class="recorder-stat">
+                <span class="recorder-stat-label">Distance</span>
+                <span class="recorder-stat-value" id="track-distance">0 m</span>
+              </div>
+              <div class="recorder-stat">
+                <span class="recorder-stat-label">Duration</span>
+                <span class="recorder-stat-value" id="recording-duration">0:00</span>
+              </div>
+            </div>
+            <div class="recorder-controls">
+              <button id="start-recording-btn" class="btn-primary">
+                <span class="btn-icon">●</span> Start Recording
+              </button>
+              <button id="stop-recording-btn" class="btn-secondary" disabled>
+                <span class="btn-icon">■</span> Stop Recording
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" data-modal="track-modal">Cancel</button>
+          <button class="btn-primary" id="save-track-btn" disabled>Save Track</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Race Modal -->
+    <div id="race-modal" class="modal">
+      <div class="modal-overlay"></div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>Select Track to Race</h2>
+          <button class="modal-close" data-modal="race-modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div id="track-list" class="track-list">
+            <div class="empty-state">
+              <p>No tracks available. Create your first track!</p>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn-secondary" data-modal="race-modal">Cancel</button>
+        </div>
+      </div>
     </div>
 
     <script src="js/app.js"></script>
