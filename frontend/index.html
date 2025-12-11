@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>TrackDay Racing</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <!-- Header -->
+      <header class="header">
+        <h1>🏁 TrackDay Racing</h1>
+        <div id="user-info" class="user-info"></div>
+      </header>
+
+      <!-- Main Navigation -->
+      <nav class="nav">
+        <button class="nav-btn active" data-view="home">Home</button>
+        <button class="nav-btn" data-view="tracks">Tracks</button>
+        <button class="nav-btn" data-view="challenges">Challenges</button>
+        <button class="nav-btn" data-view="profile">Profile</button>
+      </nav>
+
+      <!-- Views Container -->
+      <main class="container">
+        <!-- Home View -->
+        <div id="home-view" class="view active">
+          <section class="welcome">
+            <h2>Welcome to TrackDay Racing!</h2>
+            <p>Create tracks, challenge friends, and compete for the best times.</p>
+          </section>
+
+          <section class="user-setup" id="user-setup">
+            <h3>Get Started</h3>
+            <input type="text" id="username" placeholder="Username" />
+            <input type="text" id="display-name" placeholder="Display Name" />
+            <button id="create-user-btn" class="btn-primary">Create Profile</button>
+          </section>
+
+          <section class="quick-actions" id="quick-actions" style="display: none">
+            <h3>Quick Actions</h3>
+            <button class="btn-primary" id="create-track-btn">🗺️ Create New Track</button>
+            <button class="btn-secondary" id="browse-challenges-btn">🏆 Browse Challenges</button>
+          </section>
+
+          <section class="active-challenges">
+            <h3>Active Challenges</h3>
+            <div id="active-challenges-list" class="challenges-list"></div>
+          </section>
+        </div>
+
+        <!-- Tracks View -->
+        <div id="tracks-view" class="view">
+          <h2>Tracks</h2>
+          <button class="btn-primary" id="new-track-btn">+ Create Track</button>
+          <div id="tracks-list" class="tracks-list"></div>
+        </div>
+
+        <!-- Track Creator -->
+        <div id="track-creator" class="modal" style="display: none">
+          <div class="modal-content">
+            <h2>Create Track</h2>
+            <input type="text" id="track-name" placeholder="Track Name" />
+            <textarea id="track-description" placeholder="Description"></textarea>
+            <select id="activity-type">
+              <option value="running">Running</option>
+              <option value="biking">Biking</option>
+              <option value="skating">Skating</option>
+              <option value="driving">Driving</option>
+              <option value="go-kart">Go-Kart</option>
+            </select>
+            <div class="gps-controls">
+              <button id="start-recording-btn" class="btn-primary">Start Recording</button>
+              <button id="stop-recording-btn" class="btn-secondary" disabled>Stop Recording</button>
+              <p id="recording-status"></p>
+            </div>
+            <div class="waypoints-preview">
+              <h4>Waypoints: <span id="waypoint-count">0</span></h4>
+              <p>Distance: <span id="track-distance">0</span> meters</p>
+            </div>
+            <button id="save-track-btn" class="btn-primary" disabled>Save Track</button>
+            <button id="cancel-track-btn" class="btn-secondary">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Challenges View -->
+        <div id="challenges-view" class="view">
+          <h2>Challenges</h2>
+          <div id="challenges-list" class="challenges-list"></div>
+        </div>
+
+        <!-- Profile View -->
+        <div id="profile-view" class="view">
+          <h2>My Profile</h2>
+          <div id="profile-content"></div>
+          <h3>My Tracks</h3>
+          <div id="my-tracks-list"></div>
+          <h3>My Attempts</h3>
+          <div id="my-attempts-list"></div>
+        </div>
+      </main>
+    </div>
+
+    <script src="js/app.js"></script>
+  </body>
+</html>
