@@ -1,22 +1,32 @@
-const Database = require('better-sqlite3');
+const initSqlJs = require('sql.js');
 const path = require('path');
 const fs = require('fs');
 
 const dbPath = process.env.DB_PATH || './data/trackday.db';
 const dbDir = path.dirname(dbPath);
 
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
+let db = null;
+let SQL = null;
 
-const db = new Database(dbPath);
+// Initialize sql.js database
+const initDB = async () => {
+  SQL = await initSqlJs();
 
-// Enable foreign keys
-db.pragma('foreign_keys = ON');
+  // Create directory if needed
+  if (!fs.existsSync(dbDir)) {
+    fs.mkdirSync(dbDir, { recursive: true });
+  }
 
-// Initialize database schema
-const initDB = () => {
-  db.exec(`
+  // Load existing database or create new one
+  if (fs.existsSync(dbPath)) {
+    const buffer = fs.readFileSync(dbPath);
+    db = new SQL.Database(buffer);
+  } else {
+    db = new SQL.Database();
+  }
+
+  // Create schema
+  db.run(`
     CREATE TABLE IF NOT EXISTS users (
       id TEXT PRIMARY KEY,
       username TEXT UNIQUE NOT NULL,
@@ -67,8 +77,79 @@ const initDB = () => {
     CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
     CREATE INDEX IF NOT EXISTS idx_challenges_track ON challenges(track_id);
   `);
+
+  // Save database to file
+  saveDatabase();
 };
 
-initDB();
+// Save database to file
+function saveDatabase() {
+  if (db) {
+    const data = db.export();
+    const buffer = Buffer.from(data);
+    fs.writeFileSync(dbPath, buffer);
+  }
+}
 
-module.exports = db;
+// Wrapper object that mimics better-sqlite3 API
+const dbWrapper = {
+  prepare: (sql) => {
+    return {
+      run: (...params) => {
+        if (!db) throw new Error('Database not initialized');
+        db.run(sql, params);
+        saveDatabase();
+      },
+      get: (...params) => {
+        if (!db) throw new Error('Database not initialized');
+        const stmt = db.prepare(sql);
+        stmt.bind(params);
+        const result = stmt.step() ? stmt.getAsObject() : null;
+        stmt.free();
+        return result;
+      },
+      all: (...params) => {
+        if (!db) throw new Error('Database not initialized');
+        const stmt = db.prepare(sql);
+        stmt.bind(params);
+        const results = [];
+        while (stmt.step()) {
+          results.push(stmt.getAsObject());
+        }
+        stmt.free();
+        return results;
+      },
+    };
+  },
+  exec: (sql) => {
+    if (!db) throw new Error('Database not initialized');
+    db.run(sql);
+    saveDatabase();
+  },
+  pragma: (pragma) => {
+    // sql.js doesn't need pragma calls, they're already enabled
+    return;
+  },
+  close: () => {
+    if (db) {
+      saveDatabase();
+      db.close();
+    }
+  },
+};
+
+// Initialize immediately (blocking)
+let initPromise = initDB();
+
+// Export wrapper that waits for initialization
+const handler = {
+  get: (target, prop) => {
+    if (prop === 'then' || prop === 'catch') {
+      // Allow awaiting the module if needed
+      return initPromise[prop].bind(initPromise);
+    }
+    return target[prop];
+  },
+};
+
+module.exports = new Proxy(dbWrapper, handler);
