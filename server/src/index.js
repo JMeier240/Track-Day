@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const cookieParser = require('cookie-parser');
 
+const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/users');
 const trackRoutes = require('./routes/tracks');
 const attemptRoutes = require('./routes/attempts');
@@ -10,22 +12,27 @@ const challengeRoutes = require('./routes/challenges');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(cors({ origin: process.env.CORS_ORIGIN || '*' }));
+app.use(cors({ origin: process.env.CORS_ORIGIN || '*', credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 app.get('/', (req, res) => {
   res.json({
     name: 'TrackDay Racing API',
-    version: '0.1.0',
+    version: '0.2.0',
+    phase: 'Phase 2 - Social & Authentication',
     endpoints: {
+      auth: '/api/auth',
       users: '/api/users',
       tracks: '/api/tracks',
       attempts: '/api/attempts',
       challenges: '/api/challenges',
     },
+    documentation: 'See /docs for API documentation',
   });
 });
 
+app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/tracks', trackRoutes);
 app.use('/api/attempts', attemptRoutes);
@@ -38,5 +45,7 @@ app.use((err, req, res, next) => {
 
 app.listen(PORT, () => {
   console.log(`🏁 TrackDay Racing API running on http://localhost:${PORT}`);
-  console.log(`📊 Database: ${process.env.DB_PATH || './data/trackday.db'}`);
+  console.log(`🔐 Phase 2: Authentication & Social Features`);
+  console.log(`📊 Database: PostgreSQL`);
+  console.log(`📝 Docs: Check /docs for setup instructions`);
 });
