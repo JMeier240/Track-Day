@@ -47,6 +47,45 @@ CREATE TABLE IF NOT EXISTS attempts (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+-- Sessions Table (Active GPS tracking sessions)
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  track_id UUID NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+  start_time TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  end_time TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Telemetry Points Table (Individual GPS points during sessions)
+CREATE TABLE IF NOT EXISTS telemetry_points (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  lat REAL NOT NULL,
+  lng REAL NOT NULL,
+  speed REAL,
+  altitude REAL,
+  accuracy REAL,
+  timestamp BIGINT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Laps Table (Completed laps with calculated metrics)
+CREATE TABLE IF NOT EXISTS laps (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  session_id UUID NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
+  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  track_id UUID NOT NULL REFERENCES tracks(id) ON DELETE CASCADE,
+  lap_number INTEGER NOT NULL,
+  lap_time REAL NOT NULL, -- in seconds
+  top_speed REAL, -- max speed during lap
+  avg_speed REAL, -- average speed during lap
+  start_timestamp BIGINT NOT NULL,
+  end_timestamp BIGINT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(session_id, lap_number)
+);
+
 -- Challenges Table
 CREATE TABLE IF NOT EXISTS challenges (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -199,6 +238,15 @@ CREATE INDEX IF NOT EXISTS idx_tracks_public ON tracks(is_public);
 CREATE INDEX IF NOT EXISTS idx_attempts_track ON attempts(track_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_user ON attempts(user_id);
 CREATE INDEX IF NOT EXISTS idx_attempts_created ON attempts(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_track ON sessions(track_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_start ON sessions(start_time DESC);
+CREATE INDEX IF NOT EXISTS idx_telemetry_session ON telemetry_points(session_id);
+CREATE INDEX IF NOT EXISTS idx_telemetry_timestamp ON telemetry_points(timestamp);
+CREATE INDEX IF NOT EXISTS idx_laps_session ON laps(session_id);
+CREATE INDEX IF NOT EXISTS idx_laps_user ON laps(user_id);
+CREATE INDEX IF NOT EXISTS idx_laps_track ON laps(track_id);
+CREATE INDEX IF NOT EXISTS idx_laps_time ON laps(lap_time ASC);
 CREATE INDEX IF NOT EXISTS idx_challenges_track ON challenges(track_id);
 CREATE INDEX IF NOT EXISTS idx_challenges_status ON challenges(status);
 CREATE INDEX IF NOT EXISTS idx_follows_follower ON follows(follower_id);

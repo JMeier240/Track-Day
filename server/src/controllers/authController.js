@@ -288,3 +288,139 @@ exports.refreshToken = async (req, res) => {
     res.status(500).json({ error: 'Failed to refresh token' });
   }
 };
+
+/**
+ * Request magic link
+ * Generates a magic link token and logs it to console (dev mode)
+ */
+exports.requestMagicLink = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    // Find user by email
+    const result = await db.query(
+      'SELECT id, username, email, is_active FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (result.rows.length === 0) {
+      // For security, don't reveal if email exists or not
+      return res.json({
+        message: 'If this email is registered, you will receive a magic link shortly'
+      });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'Account is deactivated' });
+    }
+
+    // Generate magic link token (15 minutes expiration)
+    const magicToken = jwt.sign(
+      { userId: user.id, email: user.email, type: 'magic-link' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // In development mode, log the magic link to console
+    const magicLink = `http://localhost:3001/api/auth/verify/${magicToken}`;
+    console.log('\n🔐 Magic Link Authentication');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Email: ${user.email}`);
+    console.log(`Magic Link: ${magicLink}`);
+    console.log(`Expires: 15 minutes`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    // TODO: In production, send email using nodemailer
+    // const nodemailer = require('nodemailer');
+    // Send email with magic link
+
+    res.json({
+      message: 'If this email is registered, you will receive a magic link shortly'
+    });
+  } catch (error) {
+    console.error('Request magic link error:', error);
+    res.status(500).json({ error: 'Failed to send magic link' });
+  }
+};
+
+/**
+ * Verify magic link token
+ * Validates the magic link token and issues a 30-day session JWT
+ */
+exports.verifyMagicLink = async (req, res) => {
+  try {
+    const { token } = req.params;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Token is required' });
+    }
+
+    // Verify magic link token
+    let decoded;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Magic link has expired. Please request a new one.' });
+      }
+      if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ error: 'Invalid magic link token' });
+      }
+      throw error;
+    }
+
+    // Verify it's a magic link token
+    if (decoded.type !== 'magic-link') {
+      return res.status(401).json({ error: 'Invalid token type' });
+    }
+
+    // Get user from database
+    const result = await db.query(
+      'SELECT id, username, email, display_name, avatar_url, bio, is_verified, is_active FROM users WHERE id = $1',
+      [decoded.userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    if (!user.is_active) {
+      return res.status(403).json({ error: 'Account is deactivated' });
+    }
+
+    // Update last login
+    await db.query('UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = $1', [user.id]);
+
+    // Generate session token (30 days)
+    const sessionToken = jwt.sign(
+      { userId: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+
+    res.json({
+      message: 'Authentication successful',
+      user: {
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        displayName: user.display_name,
+        avatarUrl: user.avatar_url,
+        bio: user.bio,
+        isVerified: user.is_verified,
+      },
+      token: sessionToken,
+    });
+  } catch (error) {
+    console.error('Verify magic link error:', error);
+    res.status(500).json({ error: 'Failed to verify magic link' });
+  }
+};

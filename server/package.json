@@ -9,19 +9,25 @@
     "migrate": "node src/database/migrate.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": ["racing", "challenges", "gps", "tracking"],
+  "keywords": [
+    "racing",
+    "challenges",
+    "gps",
+    "tracking"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2",
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
-    "pg": "^8.11.3",
+    "express": "^4.18.2",
     "express-validator": "^7.0.1",
-    "nanoid": "^3.3.7",
-    "bcryptjs": "^2.4.3",
     "jsonwebtoken": "^9.0.2",
-    "cookie-parser": "^1.4.6"
+    "nanoid": "^3.3.7",
+    "nodemailer": "^7.0.11",
+    "pg": "^8.11.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
