@@ -431,11 +431,13 @@ exports.verifyMagicLink = async (req, res) => {
  */
 exports.registerPasswordless = async (req, res) => {
   try {
-    const { email, displayName } = req.body;
-
-    if (!email || !displayName) {
-      return res.status(400).json({ error: 'Email and display name are required' });
+    // Validate request
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
     }
+
+    const { email, displayName } = req.body;
 
     // Check if email already exists
     const existingUser = await db.query(
