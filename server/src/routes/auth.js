@@ -35,9 +35,20 @@ const loginValidation = [
     .withMessage('Password is required'),
 ];
 
+// Magic link validation
+const magicLinkValidation = [
+  body('email')
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Must be a valid email'),
+];
+
 // Routes
 router.post('/register', registerValidation, authController.register);
 router.post('/login', loginValidation, authController.login);
+router.post('/request-link', magicLinkValidation, authController.requestMagicLink);
+router.get('/verify/:token', authController.verifyMagicLink);
 router.get('/me', authenticate, authController.getCurrentUser);
 router.put('/profile', authenticate, authController.updateProfile);
 router.put('/password', authenticate, authController.changePassword);
