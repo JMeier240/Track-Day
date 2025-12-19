@@ -25,6 +25,81 @@
 
       <!-- Main Content -->
       <main class="main-content">
+        <!-- Authentication Section -->
+        <section id="auth-container" class="auth-container">
+          <!-- Authentication Message -->
+          <div id="auth-message" class="auth-message" style="display: none;"></div>
+
+          <!-- Authentication Forms (shown when not logged in) -->
+          <div id="auth-forms" class="auth-forms">
+            <div class="auth-card">
+              <!-- Form Toggle Buttons -->
+              <div class="auth-toggle">
+                <button id="show-login-btn" class="auth-toggle-btn active" onclick="auth.showLoginForm()">
+                  Login
+                </button>
+                <button id="show-register-btn" class="auth-toggle-btn" onclick="auth.showRegisterForm()">
+                  Create Account
+                </button>
+              </div>
+
+              <!-- Login Form -->
+              <form id="login-form" class="auth-form" onsubmit="auth.handleLogin(event)">
+                <div class="form-group">
+                  <label for="login-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="login-email"
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                  Send Magic Link
+                </button>
+                <p class="auth-note">We'll send you a magic link to sign in instantly</p>
+              </form>
+
+              <!-- Register Form -->
+              <form id="register-form" class="auth-form" style="display: none;" onsubmit="auth.handleRegister(event)">
+                <div class="form-group">
+                  <label for="register-name">Display Name</label>
+                  <input
+                    type="text"
+                    id="register-name"
+                    placeholder="Your Name"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="register-email">Email Address</label>
+                  <input
+                    type="email"
+                    id="register-email"
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+                <button type="submit" class="btn-primary btn-full">
+                  Create Account
+                </button>
+                <p class="auth-note">You'll receive a magic link to verify your account</p>
+              </form>
+            </div>
+          </div>
+
+          <!-- User Info (shown when logged in) -->
+          <div id="user-info" class="user-info" style="display: none;">
+            <div class="user-info-content">
+              <span class="user-icon">👤</span>
+              <span class="user-greeting">Welcome back, <strong id="auth-user-name">Driver</strong>!</span>
+            </div>
+            <button onclick="auth.logout()" class="btn-secondary btn-logout">
+              Logout
+            </button>
+          </div>
+        </section>
+
         <!-- Welcome Section -->
         <section class="welcome-section">
           <div class="welcome-header">
@@ -236,6 +311,8 @@
       </div>
     </div>
 
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
     <script src="js/app.js"></script>
   </body>
 </html>
