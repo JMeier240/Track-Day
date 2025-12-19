@@ -8,9 +8,9 @@ router.get('/', userController.getAllUsers);
 router.get('/search', userController.searchUsers);
 router.get('/:id', userController.getUser);
 router.get('/:id/stats', userController.getUserWithStats);
+router.post('/', userController.createUser); // User creation is public
 
 // Protected routes (require authentication)
-router.post('/', authenticate, userController.createUser);
 router.put('/:id', authenticate, userController.updateUser);
 router.delete('/:id', authenticate, userController.deleteUser);
 
