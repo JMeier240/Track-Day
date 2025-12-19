@@ -44,9 +44,22 @@ const magicLinkValidation = [
     .withMessage('Must be a valid email'),
 ];
 
+// Passwordless registration validation
+const passwordlessRegisterValidation = [
+  body('email')
+    .trim()
+    .isEmail()
+    .normalizeEmail()
+    .withMessage('Must be a valid email'),
+  body('displayName')
+    .trim()
+    .isLength({ min: 1, max: 100 })
+    .withMessage('Display name is required and must be max 100 characters'),
+];
+
 // Routes
 router.post('/register', registerValidation, authController.register);
-router.post('/register-passwordless', authController.registerPasswordless); // No password required
+router.post('/register-passwordless', passwordlessRegisterValidation, authController.registerPasswordless);
 router.post('/login', loginValidation, authController.login);
 router.post('/request-link', magicLinkValidation, authController.requestMagicLink);
 router.get('/verify/:token', authController.verifyMagicLink);
