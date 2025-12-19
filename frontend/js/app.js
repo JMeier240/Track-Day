@@ -67,10 +67,11 @@ function updateUserDisplay() {
 
 async function createUser() {
   const username = document.getElementById('username').value.trim();
+  const email = document.getElementById('email').value.trim();
   const displayName = document.getElementById('display-name').value.trim();
 
-  if (!username || !displayName) {
-    alert('Please enter both username and display name');
+  if (!username || !email || !displayName) {
+    alert('Please enter username, email, and display name');
     return;
   }
 
@@ -78,7 +79,7 @@ async function createUser() {
     const response = await fetch(`${API_BASE}/users`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, displayName }),
+      body: JSON.stringify({ username, email, displayName }),
     });
 
     if (!response.ok) {
@@ -90,6 +91,7 @@ async function createUser() {
     saveUserToStorage(user);
     closeModal('profile-modal');
     document.getElementById('username').value = '';
+    document.getElementById('email').value = '';
     document.getElementById('display-name').value = '';
   } catch (error) {
     alert('Error creating user: ' + error.message);
