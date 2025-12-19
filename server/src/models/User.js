@@ -5,12 +5,12 @@ class User {
    * Create a new user (legacy method for backward compatibility)
    * Note: For new code, use authController.register instead
    */
-  static async create(username, displayName, email = null) {
+  static async create({ username, displayName, email, passwordHash = 'legacy' }) {
     const result = await db.query(
       `INSERT INTO users (username, display_name, email, password_hash)
        VALUES ($1, $2, $3, $4)
        RETURNING id, username, display_name, email, created_at`,
-      [username, displayName, email || `${username}@temp.local`, 'legacy']
+      [username, displayName, email || `${username}@temp.local`, passwordHash]
     );
     return result.rows[0];
   }
