@@ -406,21 +406,94 @@ exports.verifyMagicLink = async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.json({
-      message: 'Authentication successful',
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        displayName: user.display_name,
-        avatarUrl: user.avatar_url,
-        bio: user.bio,
-        isVerified: user.is_verified,
-      },
-      token: sessionToken,
-    });
+    // Redirect to frontend with user data and token in URL hash (safer than query params)
+    const userData = encodeURIComponent(JSON.stringify({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      displayName: user.display_name,
+      avatarUrl: user.avatar_url,
+      bio: user.bio,
+      isVerified: user.is_verified,
+    }));
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5500';
+    res.redirect(`${frontendUrl}/#auth-success&token=${sessionToken}&user=${userData}`);
   } catch (error) {
     console.error('Verify magic link error:', error);
     res.status(500).json({ error: 'Failed to verify magic link' });
+  }
+};
+
+/**
+ * Passwordless registration - creates account and sends magic link
+ * Used for frontend auth UI that only collects email and display name
+ */
+exports.registerPasswordless = async (req, res) => {
+  try {
+    const { email, displayName } = req.body;
+
+    if (!email || !displayName) {
+      return res.status(400).json({ error: 'Email and display name are required' });
+    }
+
+    // Check if email already exists
+    const existingUser = await db.query(
+      'SELECT id FROM users WHERE email = $1',
+      [email]
+    );
+
+    if (existingUser.rows.length > 0) {
+      return res.status(409).json({ error: 'Email already registered' });
+    }
+
+    // Auto-generate username from email
+    const username = email.split('@')[0] + '_' + Math.random().toString(36).substring(2, 7);
+
+    // Generate random password (user won't use it, only magic links)
+    const randomPassword = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+    const passwordHash = await bcrypt.hash(randomPassword, 10);
+
+    // Create user
+    const result = await db.query(
+      `INSERT INTO users (username, email, password_hash, display_name)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, username, email, display_name, created_at`,
+      [username, email, passwordHash, displayName]
+    );
+
+    const user = result.rows[0];
+
+    // Create "user joined" activity
+    await db.query(
+      `INSERT INTO activities (user_id, activity_type, entity_type, metadata)
+       VALUES ($1, 'user_joined', 'user', $2)`,
+      [user.id, JSON.stringify({ username: user.username })]
+    );
+
+    // Generate magic link token (15 minutes expiration)
+    const magicToken = jwt.sign(
+      { userId: user.id, email: user.email, type: 'magic-link' },
+      process.env.JWT_SECRET,
+      { expiresIn: '15m' }
+    );
+
+    // In development mode, log the magic link to console
+    const magicLink = `http://localhost:3001/api/auth/verify/${magicToken}`;
+    console.log('\n🔐 Magic Link Authentication (New Account)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Email: ${user.email}`);
+    console.log(`Display Name: ${user.display_name}`);
+    console.log(`Magic Link: ${magicLink}`);
+    console.log(`Expires: 15 minutes`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+
+    res.status(201).json({
+      message: 'Account created! Check the console for your magic link.',
+      email: user.email,
+    });
+  } catch (error) {
+    console.error('Passwordless registration error:', error);
+    res.status(500).json({ error: 'Registration failed' });
   }
 };

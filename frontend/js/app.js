@@ -1,5 +1,15 @@
 const API_BASE = 'http://localhost:3001/api';
 
+// Helper function to get auth headers
+function getAuthHeaders() {
+  const token = localStorage.getItem('trackday_token');
+  const headers = { 'Content-Type': 'application/json' };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+  return headers;
+}
+
 const state = {
   currentUser: null,
   recording: false,
@@ -13,10 +23,49 @@ const state = {
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
   loadTheme();
+  checkMagicLinkAuth(); // Check if user clicked magic link
   loadUserFromStorage();
   setupEventListeners();
   loadDashboardData();
 });
+
+// ========== MAGIC LINK AUTHENTICATION ==========
+
+function checkMagicLinkAuth() {
+  const hash = window.location.hash;
+
+  // Check if URL contains magic link authentication data
+  if (hash.includes('auth-success')) {
+    try {
+      // Extract token and user data from hash
+      const params = new URLSearchParams(hash.substring(1));
+      const token = params.get('token');
+      const userDataEncoded = params.get('user');
+
+      if (token && userDataEncoded) {
+        const user = JSON.parse(decodeURIComponent(userDataEncoded));
+
+        // Save to localStorage
+        localStorage.setItem('trackday_token', token);
+        localStorage.setItem('trackday_user', JSON.stringify(user));
+
+        state.currentUser = user;
+
+        // Clear the hash from URL
+        window.location.hash = '';
+
+        // Show success message
+        alert(`Welcome, ${user.displayName}! You're now logged in.`);
+
+        // Reload the page to update UI
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error('Error processing magic link:', error);
+      alert('Authentication failed. Please try again.');
+    }
+  }
+}
 
 // ========== THEME MANAGEMENT ==========
 
@@ -66,35 +115,41 @@ function updateUserDisplay() {
 }
 
 async function createUser() {
-  const username = document.getElementById('username').value.trim();
   const email = document.getElementById('email').value.trim();
   const displayName = document.getElementById('display-name').value.trim();
 
-  if (!username || !email || !displayName) {
-    alert('Please enter username, email, and display name');
+  if (!email || !displayName) {
+    alert('Please enter email and display name');
     return;
   }
 
   try {
-    const response = await fetch(`${API_BASE}/users`, {
+    // Use passwordless registration endpoint
+    const response = await fetch(`${API_BASE}/auth/register-passwordless`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, email, displayName }),
+      body: JSON.stringify({ email, displayName }),
     });
 
     if (!response.ok) {
       const error = await response.json();
-      throw new Error(error.error || 'Failed to create user');
+      throw new Error(error.error || 'Failed to create account');
     }
 
-    const user = await response.json();
-    saveUserToStorage(user);
+    const result = await response.json();
+
+    // Show success message and instructions
+    alert(
+      `${result.message}\n\n` +
+      `A magic link has been generated and printed to the server console.\n` +
+      `Click the link in the console to complete authentication.`
+    );
+
     closeModal('profile-modal');
-    document.getElementById('username').value = '';
     document.getElementById('email').value = '';
     document.getElementById('display-name').value = '';
   } catch (error) {
-    alert('Error creating user: ' + error.message);
+    alert('Error creating account: ' + error.message);
   }
 }
 
@@ -401,11 +456,10 @@ async function saveTrack() {
   try {
     const response = await fetch(`${API_BASE}/tracks`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getAuthHeaders(),
       body: JSON.stringify({
         name,
         description,
-        creatorId: state.currentUser.id,
         waypoints: state.waypoints,
         distance: calculateDistance(),
         activityType,

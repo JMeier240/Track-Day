@@ -46,6 +46,7 @@ const magicLinkValidation = [
 
 // Routes
 router.post('/register', registerValidation, authController.register);
+router.post('/register-passwordless', authController.registerPasswordless); // No password required
 router.post('/login', loginValidation, authController.login);
 router.post('/request-link', magicLinkValidation, authController.requestMagicLink);
 router.get('/verify/:token', authController.verifyMagicLink);
