@@ -8,6 +8,7 @@ const userRoutes = require('./routes/users');
 const trackRoutes = require('./routes/tracks');
 const attemptRoutes = require('./routes/attempts');
 const challengeRoutes = require('./routes/challenges');
+const sessionRoutes = require('./routes/sessions');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -27,6 +28,7 @@ app.get('/', (req, res) => {
       tracks: '/api/tracks',
       attempts: '/api/attempts',
       challenges: '/api/challenges',
+      sessions: '/api/sessions',
     },
     documentation: 'See /docs for API documentation',
   });
@@ -37,6 +39,7 @@ app.use('/api/users', userRoutes);
 app.use('/api/tracks', trackRoutes);
 app.use('/api/attempts', attemptRoutes);
 app.use('/api/challenges', challengeRoutes);
+app.use('/api/sessions', sessionRoutes);
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
