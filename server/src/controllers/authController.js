@@ -406,19 +406,19 @@ exports.verifyMagicLink = async (req, res) => {
       { expiresIn: '30d' }
     );
 
-    res.json({
-      message: 'Authentication successful',
-      user: {
-        id: user.id,
-        username: user.username,
-        email: user.email,
-        displayName: user.display_name,
-        avatarUrl: user.avatar_url,
-        bio: user.bio,
-        isVerified: user.is_verified,
-      },
-      token: sessionToken,
-    });
+    // Redirect to frontend with user data and token in URL hash (safer than query params)
+    const userData = encodeURIComponent(JSON.stringify({
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      displayName: user.display_name,
+      avatarUrl: user.avatar_url,
+      bio: user.bio,
+      isVerified: user.is_verified,
+    }));
+
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5500';
+    res.redirect(`${frontendUrl}/#auth-success&token=${sessionToken}&user=${userData}`);
   } catch (error) {
     console.error('Verify magic link error:', error);
     res.status(500).json({ error: 'Failed to verify magic link' });
