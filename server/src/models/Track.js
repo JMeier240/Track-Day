@@ -1,5 +1,16 @@
 const db = require('../database/db');
 
+/**
+ * Helper function to safely parse waypoints
+ * PostgreSQL JSONB fields are already parsed by node-postgres
+ */
+function parseWaypoints(waypoints) {
+  if (typeof waypoints === 'string') {
+    return JSON.parse(waypoints);
+  }
+  return waypoints; // Already parsed by PostgreSQL
+}
+
 class Track {
   /**
    * Create a new track
@@ -13,7 +24,7 @@ class Track {
     );
 
     const track = result.rows[0];
-    track.waypoints = JSON.parse(track.waypoints);
+    track.waypoints = parseWaypoints(track.waypoints);
 
     // Create activity for track creation
     await db.query(
@@ -40,7 +51,7 @@ class Track {
     if (result.rows.length === 0) return null;
 
     const track = result.rows[0];
-    track.waypoints = JSON.parse(track.waypoints);
+    track.waypoints = parseWaypoints(track.waypoints);
     return track;
   }
 
@@ -62,7 +73,7 @@ class Track {
 
     return result.rows.map((track) => ({
       ...track,
-      waypoints: JSON.parse(track.waypoints),
+      waypoints: parseWaypoints(track.waypoints),
       average_rating: track.average_rating ? parseFloat(track.average_rating) : null,
       rating_count: parseInt(track.rating_count),
     }));
@@ -85,7 +96,7 @@ class Track {
 
     return result.rows.map((track) => ({
       ...track,
-      waypoints: JSON.parse(track.waypoints),
+      waypoints: parseWaypoints(track.waypoints),
       average_rating: track.average_rating ? parseFloat(track.average_rating) : null,
       rating_count: parseInt(track.rating_count),
     }));
@@ -119,7 +130,7 @@ class Track {
 
     return result.rows.map((track) => ({
       ...track,
-      waypoints: JSON.parse(track.waypoints),
+      waypoints: parseWaypoints(track.waypoints),
       average_rating: track.average_rating ? parseFloat(track.average_rating) : null,
       rating_count: parseInt(track.rating_count),
     }));
@@ -142,7 +153,7 @@ class Track {
 
     return result.rows.map((track) => ({
       ...track,
-      waypoints: JSON.parse(track.waypoints),
+      waypoints: parseWaypoints(track.waypoints),
       average_rating: track.average_rating ? parseFloat(track.average_rating) : null,
     }));
   }
@@ -168,7 +179,7 @@ class Track {
 
     return result.rows.map((track) => ({
       ...track,
-      waypoints: JSON.parse(track.waypoints),
+      waypoints: parseWaypoints(track.waypoints),
       recent_attempts: parseInt(track.recent_attempts),
       average_rating: track.average_rating ? parseFloat(track.average_rating) : null,
     }));
@@ -208,7 +219,7 @@ class Track {
     if (result.rows.length === 0) return null;
 
     const track = result.rows[0];
-    track.waypoints = JSON.parse(track.waypoints);
+    track.waypoints = parseWaypoints(track.waypoints);
     return track;
   }
 
@@ -241,7 +252,7 @@ class Track {
     if (result.rows.length === 0) return null;
 
     const track = result.rows[0];
-    track.waypoints = JSON.parse(track.waypoints);
+    track.waypoints = parseWaypoints(track.waypoints);
     track.total_attempts = parseInt(track.total_attempts);
     track.rating_count = parseInt(track.rating_count);
     track.favorites_count = parseInt(track.favorites_count);
