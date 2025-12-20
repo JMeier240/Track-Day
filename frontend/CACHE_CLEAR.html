@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Cache - TrackDay</title>
+</head>
+<body style="font-family: sans-serif; padding: 50px; text-align: center;">
+    <h1>Cache Cleared!</h1>
+    <p>Your browser cache has been cleared.</p>
+    <p><a href="index.html" style="display: inline-block; margin-top: 20px; padding: 12px 24px; background: #dc2626; color: white; text-decoration: none; border-radius: 6px;">Go to TrackDay →</a></p>
+    <script>
+        // Force clear all localStorage
+        localStorage.clear();
+        sessionStorage.clear();
+        console.log('All storage cleared!');
+    </script>
+</body>
+</html>
