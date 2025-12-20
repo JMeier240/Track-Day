@@ -523,6 +523,89 @@ function selectTrack(trackId) {
   closeModal('race-modal');
 }
 
+// ========== AUTHENTICATION ==========
+
+function switchAuthTab(tabName) {
+  // Update tab buttons
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.classList.toggle('active', tab.dataset.tab === tabName);
+  });
+
+  // Update tab content
+  document.getElementById('login-tab').classList.toggle('active', tabName === 'login');
+  document.getElementById('register-tab').classList.toggle('active', tabName === 'register');
+}
+
+async function sendMagicLink() {
+  const email = document.getElementById('login-email').value.trim();
+
+  if (!email) {
+    alert('Please enter your email address');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/auth/request-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(result.error || 'Failed to send magic link');
+    }
+
+    alert(
+      `Magic link sent!\n\n` +
+      `Check the server console for your magic link.\n` +
+      `Click the link to sign in instantly.`
+    );
+
+    document.getElementById('login-email').value = '';
+  } catch (error) {
+    alert('Error sending magic link: ' + error.message);
+  }
+}
+
+async function createAccount() {
+  const email = document.getElementById('register-email').value.trim();
+  const displayName = document.getElementById('register-display-name').value.trim();
+
+  if (!email || !displayName) {
+    alert('Please enter email and display name');
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/auth/register-passwordless`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, displayName }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || 'Failed to create account');
+    }
+
+    const result = await response.json();
+
+    alert(
+      `Account created successfully!\n\n` +
+      `${result.message}\n\n` +
+      `Check the server console for your magic link to complete authentication.`
+    );
+
+    closeModal('auth-modal');
+    document.getElementById('register-email').value = '';
+    document.getElementById('register-display-name').value = '';
+  } catch (error) {
+    alert('Error creating account: ' + error.message);
+  }
+}
+
 // ========== MODAL MANAGEMENT ==========
 
 function openModal(modalId) {
@@ -546,7 +629,7 @@ function setupEventListeners() {
   document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
 
   // Quick actions
-  document.getElementById('create-profile-btn').addEventListener('click', () => openModal('profile-modal'));
+  document.getElementById('create-profile-btn').addEventListener('click', () => openModal('auth-modal'));
   document.getElementById('create-track-btn').addEventListener('click', openTrackCreator);
   document.getElementById('start-race-btn').addEventListener('click', startRace);
 
@@ -555,8 +638,20 @@ function setupEventListeners() {
     alert('Race card sharing coming soon!');
   });
 
-  // Profile modal
-  document.getElementById('save-profile-btn').addEventListener('click', createUser);
+  // Auth modal tabs
+  document.querySelectorAll('.auth-tab').forEach(tab => {
+    tab.addEventListener('click', () => switchAuthTab(tab.dataset.tab));
+  });
+
+  // Auth buttons
+  document.getElementById('send-magic-link-btn').addEventListener('click', sendMagicLink);
+  document.getElementById('create-account-btn').addEventListener('click', createAccount);
+
+  // Legacy profile modal (backward compatibility)
+  const saveProfileBtn = document.getElementById('save-profile-btn');
+  if (saveProfileBtn) {
+    saveProfileBtn.addEventListener('click', createUser);
+  }
 
   // Track modal
   document.getElementById('start-recording-btn').addEventListener('click', startRecording);
