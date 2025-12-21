@@ -193,12 +193,13 @@ class Track {
     const values = [];
     let paramCount = 1;
 
-    const allowedFields = ['name', 'description', 'difficulty', 'is_public'];
+    const allowedFields = ['name', 'description', 'difficulty', 'is_public', 'distance', 'waypoints'];
 
     Object.keys(updates).forEach((key) => {
-      if (allowedFields.includes(key)) {
+      if (allowedFields.includes(key) && updates[key] !== undefined) {
+        const value = key === 'waypoints' ? JSON.stringify(updates[key]) : updates[key];
         fields.push(`${key} = $${paramCount++}`);
-        values.push(updates[key]);
+        values.push(value);
       }
     });
 
